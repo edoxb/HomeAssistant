@@ -1,0 +1,74 @@
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Home Assistant secrets and runtime state
+config/secrets.yaml
+config/.storage/
+config/.cloud/
+config/.uuid
+config/.HA_VERSION
+config/.ha_run.lock
+config/known_devices.yaml
+config/ip_bans.yaml
+
+# Home Assistant generated data
+config/home-assistant.log*
+config/home-assistant_v2.db*
+config/*.db
+config/*.db-*
+config/*.log
+config/deps/
+config/tts/
+config/.Trash-*/
+
+# Home Assistant backups and archives
+config/backups/
+config/backup/
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+
+# Certificates and private keys
+*.key
+*.pem
+*.crt
+*.csr
+*.p12
+*.pfx
+
+# HACS/downloaded frontend packages
+config/www/community/
+config/custom_components/*/__pycache__/
+
+# Node-RED dependencies and generated files
+node-red/node_modules/
+node-red/.npm/
+node-red/.cache/
+node-red/.config.nodes.json*
+node-red/.config.users.json*
+node-red/.sessions.json
+node-red/context/
+node-red/lib/flows/
+node-red/*.log
+node-red/*_cred.json
+node-red/flows_cred*.json
+
+# Keep Node-RED package manifests versionable
+!node-red/package.json
+!node-red/package-lock.json
+
+# Docker and OS noise
+docker-data/
+*.pid
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
