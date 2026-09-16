@@ -1,124 +1,104 @@
-# Home Assistant con Docker Compose
+# Home Assistant su Ubuntu Server
 
-Configurazione minimale e portabile per eseguire Home Assistant Container con Docker Desktop su Windows e migrare poi su un host Linux.
+Installazione nuova: la casa è vuota, si configura dopo il primo avvio.
+I container girano sul server; l'interfaccia si apre dal browser di un PC o del telefono sulla stessa rete (Ubuntu Server non ha desktop).
 
-## Prerequisiti
+## Cosa fa GitHub
 
-- Docker Desktop installato e avviato su Windows.
-- Docker Engine e Docker Compose plugin quando migrerai su Linux.
+Il repo contiene solo lo stack Docker (compose, `.env.example`, YAML di partenza).
+Utenti, integrazioni e automazioni nascono sul server e restano in `config/` (non su GitHub).
 
-## Struttura
+## Avvio sul server
 
-- `compose.yaml`: definizione dei container Home Assistant e Node-RED.
-- `.env`: parametri modificabili come porte, timezone e percorsi dati.
-- `config/`: dati persistenti di Home Assistant, montati nel container come `/config`.
-- `node-red/`: dati persistenti di Node-RED, montati nel container come `/data`.
+Via SSH:
 
-## Avvio su Windows
+```bash
+sudo apt update
+sudo apt install -y git docker.io docker-compose-v2
+sudo usermod -aG docker "$USER"
+sudo systemctl enable --now docker
+```
 
-Da PowerShell, nella cartella del progetto:
+Esci e rientra in SSH, poi:
 
-```powershell
+```bash
+git clone https://github.com/edoxb/HomeAssistant.git ~/homeassistant
+cd ~/homeassistant
+cp .env.example .env
+mkdir -p node-red config
+sudo chown -R 1000:1000 node-red
 docker compose up -d
 ```
 
-Apri poi Home Assistant da:
+Attendi che Home Assistant sia pronto:
 
-```text
-http://localhost:8123
-```
-
-Apri Node-RED da:
-
-```text
-http://localhost:1880
-```
-
-Per vedere i log:
-
-```powershell
+```bash
 docker compose logs -f homeassistant
-docker compose logs -f node-red
 ```
 
-Per fermare il container senza cancellare i dati:
+Quando nei log compare che l'interfaccia è in ascolto, dal PC o dal telefono apri:
 
-```powershell
+```text
+http://IP_DEL_SERVER:8123
+```
+
+Lì fai l'onboarding: crea l'utente, imposta posizione/fuso orario, poi aggiungi dispositivi e automazioni. Tutto si salva da solo in `config/`.
+
+Node-RED (opzionale, dopo HA):
+
+```text
+http://IP_DEL_SERVER:1880
+```
+
+In Node-RED il server Home Assistant è `http://127.0.0.1:8123`. Serve un Long-Lived Access Token dal profilo utente di HA.
+
+## Firewall
+
+```bash
+sudo ufw allow OpenSSH
+sudo ufw allow 8123/tcp comment 'Home Assistant'
+sudo ufw enable
+```
+
+Non esporre 1880 su internet. Per l'editor Node-RED solo in LAN, adatta la subnet:
+
+```bash
+sudo ufw allow from 192.168.0.0/16 to any port 1880 proto tcp comment 'Node-RED LAN'
+```
+
+## Comandi utili
+
+```bash
+cd ~/homeassistant
+docker compose logs -f
+docker compose pull && docker compose up -d
 docker compose down
 ```
 
-## Aggiornamento
-
-```powershell
-docker compose pull
-docker compose up -d
-```
+`down` ferma i container e lascia i dati. Non cancellare `config/` se hai già configurato la casa.
 
 ## Backup
 
-Ferma Home Assistant prima di copiare i file, cosi' eviti database o configurazioni scritte a meta':
-
-```powershell
-docker compose down
-tar -czf homeassistant-backup.tgz compose.yaml .env config node-red
-docker compose up -d
-```
-
-Le cartelle piu' importanti sono `config/` per Home Assistant e `node-red/` per i flow e le impostazioni di Node-RED.
-
-## Migrazione su Linux
-
-Sul PC Windows:
-
-```powershell
-docker compose down
-tar -czf homeassistant-migration.tgz compose.yaml .env config node-red
-```
-
-Copia `homeassistant-migration.tgz` sul PC Linux, poi estrailo in una directory dedicata:
-
 ```bash
-mkdir -p ~/homeassistant
-tar -xzf homeassistant-migration.tgz -C ~/homeassistant
 cd ~/homeassistant
+docker compose down
+tar -czf ~/homeassistant-backup.tgz .env config node-red
 docker compose up -d
 ```
 
-Su Linux, se Node-RED non riesce a scrivere nella cartella `node-red/`, assegna la cartella all'utente con UID 1000 usato dal container:
+## Hardware
 
-```bash
-sudo chown -R 1000:1000 node-red
+Home Assistant Container non include gli add-on. Zigbee, MQTT, ESPHome si aggiungono come altri servizi nello stesso Compose.
+In `compose.yaml` c'è un volume D-Bus commentato se sul server usi Bluetooth.
+
+## Prove su Windows
+
+`network_mode: host` non funziona su Docker Desktop. Per un test locale:
+
+```powershell
+copy .env.example .env
+docker compose -f compose.windows.yaml up -d
 ```
 
-Se su Linux ti servira' una discovery di rete piu' affidabile, per esempio mDNS o UPnP, potrai valutare `network_mode: host` nel `compose.yaml`. In quel caso rimuovi la sezione `ports`, perche' con rete host non serve mappare la porta.
-
-Esempio Linux con rete host:
-
-```yaml
-services:
-  homeassistant:
-    image: ghcr.io/home-assistant/home-assistant:stable
-    container_name: homeassistant
-    restart: unless-stopped
-    network_mode: host
-    environment:
-      TZ: ${TZ}
-    volumes:
-      - ${HA_CONFIG_DIR}:/config
-```
-
-## Servizi aggiuntivi
-
-Home Assistant Container non include gli Add-on ufficiali. Se in futuro serviranno MQTT, Zigbee2MQTT, ESPHome, MariaDB o altri servizi, conviene aggiungerli come container separati nello stesso progetto Docker Compose.
-
-## Collegamento Node-RED a Home Assistant
-
-Dentro Node-RED installa, se non gia' presente, il pacchetto `node-red-contrib-home-assistant-websocket`.
-
-Quando configuri il server Home Assistant in Node-RED usa:
-
-```text
-http://homeassistant:8123
-```
-
-Per l'autenticazione crea un Long-Lived Access Token dal profilo utente di Home Assistant e incollalo nella configurazione del server Node-RED.
+Poi `http://localhost:8123`. In Node-RED l'URL di HA è `http://homeassistant:8123`.
+La configurazione vera resta quella del server.

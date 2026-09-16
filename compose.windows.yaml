@@ -1,0 +1,28 @@
+# Solo per prove su Windows con Docker Desktop (network_mode: host non funziona lì).
+# Sul server Ubuntu usa compose.yaml.
+# Avvio: docker compose -f compose.windows.yaml up -d
+
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+    ports:
+      - "${HA_PORT}:8123"
+    volumes:
+      - ${HA_CONFIG_DIR}:/config
+
+  node-red:
+    image: nodered/node-red:4
+    container_name: node-red
+    restart: unless-stopped
+    depends_on:
+      - homeassistant
+    environment:
+      TZ: ${TZ}
+    ports:
+      - "${NODE_RED_PORT}:1880"
+    volumes:
+      - ${NODE_RED_DATA_DIR}:/data

@@ -22,6 +22,7 @@ config/*.log
 config/deps/
 config/tts/
 config/.Trash-*/
+config/.cache/
 
 # Home Assistant backups and archives
 config/backups/
@@ -49,6 +50,7 @@ node-red/.npm/
 node-red/.cache/
 node-red/.config.nodes.json*
 node-red/.config.users.json*
+node-red/.config.runtime.json*
 node-red/.sessions.json
 node-red/context/
 node-red/lib/flows/

@@ -1,24 +1,32 @@
+# Compose per Ubuntu Server (Docker Engine, via SSH).
+# Avvio: docker compose up -d
+#
+# network_mode: host è il modo consigliato da Home Assistant su Linux.
+# Le variabili HA_PORT e NODE_RED_PORT in .env vengono ignorate:
+# Home Assistant ascolta 8123, Node-RED ascolta 1880 sull'IP del server.
+
 services:
   homeassistant:
     image: ghcr.io/home-assistant/home-assistant:stable
     container_name: homeassistant
     restart: unless-stopped
+    network_mode: host
     environment:
       TZ: ${TZ}
-    ports:
-      - "${HA_PORT}:8123"
     volumes:
       - ${HA_CONFIG_DIR}:/config
+      - /etc/localtime:/etc/localtime:ro
+      # Bluetooth sul server (decommenta se usi adattatori BT):
+      # - /run/dbus:/run/dbus:ro
 
   node-red:
-    image: nodered/node-red:latest
+    image: nodered/node-red:4
     container_name: node-red
     restart: unless-stopped
     depends_on:
       - homeassistant
+    network_mode: host
     environment:
       TZ: ${TZ}
-    ports:
-      - "${NODE_RED_PORT}:1880"
     volumes:
       - ${NODE_RED_DATA_DIR}:/data
