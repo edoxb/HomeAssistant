@@ -15,7 +15,7 @@ services:
       - ${HA_CONFIG_DIR}:/config
 
   node-red:
-    image: nodered/node-red:4
+    image: nodered/node-red:latest
     container_name: node-red
     restart: unless-stopped
     depends_on:

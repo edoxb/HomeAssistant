@@ -20,7 +20,7 @@ services:
       # - /run/dbus:/run/dbus:ro
 
   node-red:
-    image: nodered/node-red:4
+    image: nodered/node-red:latest
     container_name: node-red
     restart: unless-stopped
     depends_on:
