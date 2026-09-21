@@ -62,10 +62,9 @@ node-red/flows_cred*.json
 !node-red/package.json
 !node-red/package-lock.json
 
-# LLM and voice model caches
-ollama/
-whisper/
-piper/
+# Caddy TLS state
+caddy/data/
+caddy/config/
 
 # Docker and OS noise
 docker-data/

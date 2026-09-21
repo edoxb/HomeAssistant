@@ -44,29 +44,24 @@ http://IP_DEL_SERVER:8123
 
 Lì fai l'onboarding: crea l'utente, imposta posizione/fuso orario, poi aggiungi dispositivi e automazioni. Tutto si salva da solo in `config/`.
 
-## HTTPS locale (microfono in Chrome)
+## Microfono in Chrome (HTTPS con Caddy)
 
-Chrome blocca il microfono su `http://`. Un certificato **autofirmato** può sbloccarlo dopo che accetti l'avviso (o installi il certificato sul dispositivo). Va bene in LAN, non esporlo su internet.
-
-Sul server (sostituisci l'IP):
+Chrome blocca il microfono su `http://`. Home Assistant resta in **HTTP sulla 8123** (così non perdi l'accesso). **Caddy** espone **HTTPS sulla 8443**.
 
 ```bash
 cd ~/homeassistant
 git pull
-chmod +x scripts/generate-ssl.sh
-hostname -I
-./scripts/generate-ssl.sh IP_DEL_SERVER
+sudo ufw allow 8443/tcp comment 'HA HTTPS Caddy'
+docker compose up -d
 ```
 
-In `config/configuration.yaml` togli il commento alle tre righe `http:` / `ssl_certificate` / `ssl_key`. Poi:
+Dal PC apri **`https://IP_DEL_SERVER:8443`** (non 8123). Chrome: «Non sicuro» → Avanzate → procedi. Poi Assist → microfono.
 
-```bash
-docker compose restart homeassistant
-```
+`http://IP:8123` continua a funzionare, ma **senza microfono**. Per la voce usa sempre la 8443.
 
-Dal PC/telefono apri **`https://IP_DEL_SERVER:8123`** (non `http`). Chrome mostrerà un avviso: Avanzate → procedi al sito. Poi riprova il microfono in Assist.
+Su Android, se dopo «procedi» il mic resta rosso: Impostazioni → Sicurezza → installa certificato CA. Il file è `caddy/data/caddy/pki/authorities/local/root.crt` sul server.
 
-Su Android, se dopo l'avviso il mic resta bloccato, Impostazioni → Sicurezza → Installa certificato (CA) e copia `config/ssl/fullchain.pem` sul telefono. Se l'IP del server cambia, rigenera il certificato con il nuovo IP.
+L'app **Home Assistant** sul telefono può usare il microfono anche su `http://IP:8123`, senza Caddy.
 
 Node-RED (opzionale, dopo HA):
 
