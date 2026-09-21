@@ -62,6 +62,11 @@ node-red/flows_cred*.json
 !node-red/package.json
 !node-red/package-lock.json
 
+# LLM and voice model caches
+ollama/
+whisper/
+piper/
+
 # Docker and OS noise
 docker-data/
 *.pid

@@ -86,6 +86,48 @@ tar -czf ~/homeassistant-backup.tgz .env config node-red
 docker compose up -d
 ```
 
+## LLM e voce (Assist)
+
+Lo stack include tre servizi extra, tutti in locale:
+
+- **Ollama** (porta 11434): risponde alle domande e, se abilitato, controlla Home Assistant.
+- **Whisper** (porta 10300): trasforma la voce in testo.
+- **Piper** (porta 10200): legge le risposte ad alta voce, in italiano.
+
+Non è ChatGPT in cloud: è un modello sul server (gratis, dati in casa). Per qualità tipo ChatGPT puoi dopo aggiungere l'integrazione **OpenAI** in Home Assistant con una API key a pagamento, al posto di Ollama o in parallelo.
+
+Servono almeno **8 GB di RAM** (meglio 16). Senza GPU è lento ma usabile con modelli piccoli.
+
+### Avvio
+
+Dopo `git pull` e aver aggiornato `.env` da `.env.example`:
+
+```bash
+cd ~/homeassistant
+mkdir -p ollama whisper piper
+docker compose up -d
+docker exec ollama ollama pull llama3.2
+```
+
+`llama3.2` è un modello piccolo (circa 2 GB). Il primo avvio di Whisper e Piper scarica i modelli: può richiedere qualche minuto.
+
+### In Home Assistant
+
+1. **Ollama:** Impostazioni → Dispositivi e servizi → Aggiungi → Ollama. URL `http://127.0.0.1:11434`, scegli `llama3.2`. Attiva **Controlla Home Assistant** così può accendere luci, ecc.
+2. **Whisper:** Aggiungi → Wyoming Protocol → host `127.0.0.1`, porta `10300`.
+3. **Piper:** Aggiungi → Wyoming Protocol → host `127.0.0.1`, porta `10200`.
+4. **Pipeline:** Impostazioni → Assistenti vocali → Aggiungi. Lingua italiano, conversazione Ollama, STT Whisper, TTS Piper.
+
+### Come usarlo
+
+- Chat (tipo ChatGPT, in HA): icona Assist in alto a destra, scrivi.
+- Voce dal telefono: app Companion → Assist, microfono.
+- Voce dal browser: stessa icona Assist, microfono.
+
+Il server Ubuntu non ha microfono: la voce parte dal telefono o dal PC. Un satellite (Home Assistant Voice, ESP32) si può aggiungere dopo.
+
+Se Whisper/Piper restano grigi nella pipeline, la lingua deve essere **italiano** e coincidere con `WHISPER_LANGUAGE=it` e la voce `it_IT-...`. Poi ricarica le integrazioni Wyoming.
+
 ## Hardware
 
 Home Assistant Container non include gli add-on. Zigbee, MQTT, ESPHome si aggiungono come altri servizi nello stesso Compose.
