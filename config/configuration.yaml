@@ -2,6 +2,14 @@
 # Loads default set of integrations. Do not remove.
 default_config:
 
+# HTTPS in LAN (microfono Chrome). Scommenta SOLO dopo:
+#   ./scripts/generate-ssl.sh IP_DEL_SERVER
+# Poi: docker compose restart homeassistant
+# Apri https://IP:8123 (http smette di funzionare sulla 8123).
+# http:
+#   ssl_certificate: /config/ssl/fullchain.pem
+#   ssl_key: /config/ssl/privkey.pem
+
 # Load frontend themes from the themes folder
 frontend:
   themes: !include_dir_merge_named themes

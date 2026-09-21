@@ -44,6 +44,30 @@ http://IP_DEL_SERVER:8123
 
 Lì fai l'onboarding: crea l'utente, imposta posizione/fuso orario, poi aggiungi dispositivi e automazioni. Tutto si salva da solo in `config/`.
 
+## HTTPS locale (microfono in Chrome)
+
+Chrome blocca il microfono su `http://`. Un certificato **autofirmato** può sbloccarlo dopo che accetti l'avviso (o installi il certificato sul dispositivo). Va bene in LAN, non esporlo su internet.
+
+Sul server (sostituisci l'IP):
+
+```bash
+cd ~/homeassistant
+git pull
+chmod +x scripts/generate-ssl.sh
+hostname -I
+./scripts/generate-ssl.sh IP_DEL_SERVER
+```
+
+In `config/configuration.yaml` togli il commento alle tre righe `http:` / `ssl_certificate` / `ssl_key`. Poi:
+
+```bash
+docker compose restart homeassistant
+```
+
+Dal PC/telefono apri **`https://IP_DEL_SERVER:8123`** (non `http`). Chrome mostrerà un avviso: Avanzate → procedi al sito. Poi riprova il microfono in Assist.
+
+Su Android, se dopo l'avviso il mic resta bloccato, Impostazioni → Sicurezza → Installa certificato (CA) e copia `config/ssl/fullchain.pem` sul telefono. Se l'IP del server cambia, rigenera il certificato con il nuovo IP.
+
 Node-RED (opzionale, dopo HA):
 
 ```text
